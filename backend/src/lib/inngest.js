@@ -1,6 +1,7 @@
 import { Inngest } from "inngest";
 import { connectDB } from './db.js';
 import User from "../models/User.js";
+import { deleteStreamUser, upsertStreamUser } from "./stream.js";
 
 export const inngest = new Inngest({ id: "CodeCraft-Live" });
 
@@ -25,6 +26,12 @@ const syncUser = inngest.createFunction(
             });
         });
 
+        await upsertStreamUser({
+            id: newUser.clerkId.toString(),
+            name: newUser.name,
+            image: newUser.profileImage
+        })
+
         return { success: true };
     }
 );
@@ -39,6 +46,8 @@ const deleteUserFromDB = inngest.createFunction(
             await connectDB();
             return await User.deleteOne({ clerkId: id });
         });
+
+        await deleteStreamUser(id.toString)
 
         return { success: true };
     }
