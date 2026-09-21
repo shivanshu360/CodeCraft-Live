@@ -11,11 +11,10 @@ const syncUser = inngest.createFunction(
     async ({ event, step }) => {
         const { id, email_addresses, first_name, last_name, image_url } = event.data;
 
-        // FIX: Changed email_addresses to email_address (singular)
         const primaryEmail = email_addresses?.[0]?.email_address;
 
-        // Wrap DB operations inside step.run for proper step tracking
-        await step.run("save-user-to-db", async () => {
+        // FIX 1: Assign step.run output to 'newUser' variable
+        const newUser = await step.run("save-user-to-db", async () => {
             await connectDB();
 
             return await User.create({
@@ -26,11 +25,14 @@ const syncUser = inngest.createFunction(
             });
         });
 
-        await upsertStreamUser({
-            id: newUser.clerkId.toString(),
-            name: newUser.name,
-            image: newUser.profileImage
-        })
+        // FIX 2: Wrap Stream API call in a step
+        await step.run("sync-user-to-stream", async () => {
+            await upsertStreamUser({
+                id: newUser.clerkId.toString(),
+                name: newUser.name,
+                image: newUser.profileImage,
+            });
+        });
 
         return { success: true };
     }
@@ -47,7 +49,10 @@ const deleteUserFromDB = inngest.createFunction(
             return await User.deleteOne({ clerkId: id });
         });
 
-        await deleteStreamUser(id.toString)
+        // FIX 3: Added () to id.toString() and wrapped in step.run
+        await step.run("delete-user-from-stream", async () => {
+            await deleteStreamUser(id.toString());
+        });
 
         return { success: true };
     }
