@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import cors from "cors";
-import { fileURLToPath } from "url";
 import { serve } from "inngest/express";
 import { clerkMiddleware } from "@clerk/express";
 
@@ -13,10 +12,6 @@ import chatRoutes from "./routes/chatRoutes.js";
 import sessionRoutes from "./routes/sessionRoute.js";
 
 const app = express();
-
-// ES module __dirname calculation
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(express.json());
@@ -63,11 +58,13 @@ app.get("/health", (req, res) => {
 
 // Production static file serving
 if (ENV.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+  const frontendDistPath = path.resolve(process.cwd(), "frontend", "dist");
 
-  // Standard Express SPA catch-all fallback route
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+  app.use(express.static(frontendDistPath));
+
+  // Express 5 compatible catch-all route for SPA
+  app.get("(.*)", (req, res) => {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
   });
 }
 
