@@ -14,7 +14,7 @@ import sessionRoutes from "./routes/sessionRoute.js";
 
 const app = express();
 
-// Correct ES module __dirname calculation
+// ES module __dirname calculation
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -24,6 +24,9 @@ app.use(express.json());
 // Resilient CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
   ENV.CLIENT_URL,
 ]
   .filter(Boolean)
@@ -36,8 +39,9 @@ app.use(
       if (!origin) return callback(null, true);
 
       const cleanOrigin = origin.trim().replace(/\/$/, "");
+      const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin);
 
-      if (allowedOrigins.includes(cleanOrigin)) {
+      if (allowedOrigins.includes(cleanOrigin) || isLocalhost) {
         callback(null, true);
       } else {
         callback(new Error(`Origin not allowed by CORS: ${origin}`));
@@ -61,7 +65,7 @@ app.get("/health", (req, res) => {
 if (ENV.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
-  // Standard Express SPA catch-all fallback route
+  // Express SPA catch-all fallback route
   app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
   });
