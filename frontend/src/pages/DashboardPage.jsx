@@ -1,7 +1,12 @@
 import { useNavigate } from "react-router";
 import { useUser } from "@clerk/react";
 import { useState } from "react";
-import { useActiveSessions, useCreateSession, useMyRecentSessions } from "../hooks/useSessions";
+import {
+  useActiveSessions,
+  useCreateSession,
+  useDeleteSession,
+  useMyRecentSessions,
+} from "../hooks/useSessions";
 
 import Navbar from "../components/Navbar";
 import WelcomeSection from "../components/WelcomeSection";
@@ -17,6 +22,7 @@ function DashboardPage() {
   const [roomConfig, setRoomConfig] = useState({ problem: "", difficulty: "" });
 
   const createSessionMutation = useCreateSession();
+  const deleteSessionMutation = useDeleteSession();
 
   const { data: activeSessionsData, isLoading: loadingActiveSessions } = useActiveSessions();
   const { data: recentSessionsData, isLoading: loadingRecentSessions } = useMyRecentSessions();
@@ -47,6 +53,12 @@ function DashboardPage() {
     return session.host?.clerkId === user.id || session.participant?.clerkId === user.id;
   };
 
+  const handleDeleteSession = (sessionId) => {
+    if (!window.confirm("Delete this active session? This cannot be undone.")) return;
+
+    deleteSessionMutation.mutate(sessionId);
+  };
+
   return (
     <>
       <div className="min-h-screen bg-base-300">
@@ -64,6 +76,8 @@ function DashboardPage() {
               sessions={activeSessions}
               isLoading={loadingActiveSessions}
               isUserInSession={isUserInSession}
+              currentUserId={user?.id}
+              onDeleteSession={handleDeleteSession}
             />
           </div>
 

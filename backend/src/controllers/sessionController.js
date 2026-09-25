@@ -168,3 +168,41 @@ export async function endSession(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+export async function deleteSession(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const session = await Session.findById(id);
+
+    if (!session) return res.status(404).json({ message: "Session not found" });
+
+    if (session.host.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Only the host can delete the session" });
+    }
+
+    if (session.callId) {
+      try {
+        const call = streamClient.video.call("default", session.callId);
+        await call.delete({ hard: true });
+      } catch (error) {
+        console.log("Error deleting Stream video call for session:", error.message);
+      }
+
+      try {
+        const channel = chatClient.channel("messaging", session.callId);
+        await channel.delete();
+      } catch (error) {
+        console.log("Error deleting Stream chat channel for session:", error.message);
+      }
+    }
+
+    await Session.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Session deleted successfully" });
+  } catch (error) {
+    console.log("Error in deleteSession controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
