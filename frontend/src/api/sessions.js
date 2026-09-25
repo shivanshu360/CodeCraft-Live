@@ -28,6 +28,10 @@ export const sessionApi = {
     const response = await axiosInstance.post(`/sessions/${id}/end`);
     return response.data;
   },
+  deleteSession: async (id) => {
+    const response = await axiosInstance.delete(`/sessions/${id}`);
+    return response.data;
+  },
   getStreamToken: async () => {
     const response = await axiosInstance.get(`/chat/token`);
     return response.data;

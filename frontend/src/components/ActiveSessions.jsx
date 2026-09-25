@@ -3,6 +3,7 @@ import {
   Code2Icon,
   CrownIcon,
   SparklesIcon,
+  Trash2Icon,
   UsersIcon,
   ZapIcon,
   LoaderIcon,
@@ -10,7 +11,7 @@ import {
 import { Link } from "react-router";
 import { getDifficultyBadgeClass } from "../lib/utils";
 
-function ActiveSessions({ sessions, isLoading, isUserInSession }) {
+function ActiveSessions({ sessions, isLoading, isUserInSession, onDeleteSession, currentUserId }) {
   return (
     <div className="lg:col-span-2 card bg-base-100 border-2 border-primary/20 hover:border-primary/30 h-full">
       <div className="card-body">
@@ -80,6 +81,20 @@ function ActiveSessions({ sessions, isLoading, isUserInSession }) {
                       </div>
                     </div>
                   </div>
+
+                  {session.host?.clerkId === currentUserId && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onDeleteSession?.(session._id);
+                      }}
+                      className="btn btn-error btn-outline btn-sm gap-2"
+                    >
+                      <Trash2Icon className="size-4" />
+                      Delete
+                    </button>
+                  )}
 
                   {session.participant && !isUserInSession(session) ? (
                     <button className="btn btn-disabled btn-sm">Full</button>
