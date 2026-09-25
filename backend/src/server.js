@@ -25,12 +25,11 @@ const allowedOrigins = [
   ENV.CLIENT_URL,
 ]
   .filter(Boolean)
-  .map((url) => url.trim().replace(/\/$/, "")); // Strip trailing slashes
+  .map((url) => url.trim().replace(/\/$/, ""));
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
 
       const cleanOrigin = origin.trim().replace(/\/$/, "");
@@ -46,8 +45,9 @@ app.use(
   })
 );
 
-app.use(clerkMiddleware()); // Adds auth field to req object: req.auth()
+app.use(clerkMiddleware());
 
+// API routes
 app.use("/api/inngest", serve({ client: inngest, functions }));
 app.use("/api/chat", chatRoutes);
 app.use("/api/sessions", sessionRoutes);
@@ -56,15 +56,19 @@ app.get("/health", (req, res) => {
   res.status(200).json({ message: "api is up and running" });
 });
 
-// Production static file serving
+// Production static file serving & SPA fallback
 if (ENV.NODE_ENV === "production") {
   const frontendDistPath = path.resolve(process.cwd(), "frontend", "dist");
 
+  // 1. Serve static files (JS, CSS, images)
   app.use(express.static(frontendDistPath));
 
-  // Express 5 compatible catch-all route for SPA
-  app.get("(.*)", (req, res) => {
-    res.sendFile(path.join(frontendDistPath, "index.html"));
+  // 2. SPA Fallback (Bypasses path-to-regexp completely)
+  app.use((req, res, next) => {
+    if (req.method === "GET") {
+      return res.sendFile(path.join(frontendDistPath, "index.html"));
+    }
+    next();
   });
 }
 
