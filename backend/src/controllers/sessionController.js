@@ -31,7 +31,7 @@ export async function createSession(req,res){
 
         //chat messaging
 
-        const channel = chatClient.channel("messaging",callI,{
+        const channel = chatClient.channel("messaging",callId,{
             name:`${problem} Session`,
             created_by_id:clerkId,
             members:[clerkId]
@@ -43,7 +43,7 @@ export async function createSession(req,res){
 
     } catch (error) {
         console.log("Error in createSession controller:", error.message);
-        res.status(500).json({message:"Internal Sserver Error"})
+        res.status(500).json({message:"Internal Server Error"})
     }
 }
 
@@ -58,7 +58,7 @@ export async function getActiveSessions(_,res){
        res.status(200).json({sessions})
     } catch (error) {
         console.log("Error in getActiveSessions controller:", error.message);
-        res.status(500).json({message:"Internal Sserver Error"})
+        res.status(500).json({message:"Internal Server Error"})
     }
 }
 
@@ -75,7 +75,7 @@ export async function getMyRecentSessions(req,res){
         res.status(200).json({sessions})
     } catch (error) {
         console.log("Error in getMyRecentSessions controller:", error.message);
-        res.status(500).json({message:"Internal Sserver Error"})
+        res.status(500).json({message:"Internal Server Error"})
     }
 }
 

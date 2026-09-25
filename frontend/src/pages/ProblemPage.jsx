@@ -16,27 +16,30 @@ function ProblemPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [currentProblemId, setCurrentProblemId] = useState("two-sum");
+  const initialProblemId = id && PROBLEMS[id] ? id : "two-sum";
+  const [currentProblemId, setCurrentProblemId] = useState(initialProblemId);
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
-  const [code, setCode] = useState(PROBLEMS[currentProblemId].starterCode.javascript);
+  const [code, setCode] = useState(
+    PROBLEMS[initialProblemId]?.starterCode?.javascript || ""
+  );
   const [output, setOutput] = useState(null);
   const [isRunning, setIsRunning] = useState(false);
 
-  const currentProblem = PROBLEMS[currentProblemId];
+  const currentProblem = PROBLEMS[currentProblemId] || PROBLEMS["two-sum"];
 
   // update problem when URL param changes
   useEffect(() => {
-    if (id && PROBLEMS[id]) {
+    if (id && PROBLEMS[id] && id !== currentProblemId) {
       setCurrentProblemId(id);
       setCode(PROBLEMS[id].starterCode[selectedLanguage]);
       setOutput(null);
     }
-  }, [id, selectedLanguage]);
+  }, [id, currentProblemId, selectedLanguage]);
 
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
     setSelectedLanguage(newLang);
-    setCode(currentProblem.starterCode[newLang]);
+    setCode(currentProblem.starterCode[newLang] || "");
     setOutput(null);
   };
 
