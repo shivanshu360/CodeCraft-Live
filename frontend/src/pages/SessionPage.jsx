@@ -1,13 +1,13 @@
 import { useUser } from "@clerk/react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
+import { useDeleteSession, useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
 import { PROBLEMS } from "../data/problems";
 import { executeCode } from "../lib/piston";
 import Navbar from "../components/Navbar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { getDifficultyBadgeClass } from "../lib/utils";
-import { Loader2Icon, LogOutIcon, PhoneOffIcon } from "lucide-react";
+import { Loader2Icon, LogOutIcon, PhoneOffIcon, Trash2Icon } from "lucide-react";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 import OutputPanel from "../components/OutputPanel";
 
@@ -26,6 +26,7 @@ function SessionPage() {
 
   const joinSessionMutation = useJoinSession();
   const endSessionMutation = useEndSession();
+  const deleteSessionMutation = useDeleteSession();
 
   const session = sessionData?.session;
   const isHost = session?.host?.clerkId === user?.id;
@@ -95,6 +96,12 @@ function SessionPage() {
     }
   };
 
+  const handleDeleteSession = () => {
+    if (confirm("Delete this session permanently? This action cannot be undone.")) {
+      deleteSessionMutation.mutate(id, { onSuccess: () => navigate("/dashboard") });
+    }
+  };
+
   return (
     <div className="h-screen bg-base-100 flex flex-col">
       <Navbar />
@@ -133,18 +140,32 @@ function SessionPage() {
                             session?.difficulty.slice(1) || "Easy"}
                         </span>
                         {isHost && session?.status === "active" && (
-                          <button
-                            onClick={handleEndSession}
-                            disabled={endSessionMutation.isPending}
-                            className="btn btn-error btn-sm gap-2"
-                          >
-                            {endSessionMutation.isPending ? (
-                              <Loader2Icon className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <LogOutIcon className="w-4 h-4" />
-                            )}
-                            End Session
-                          </button>
+                          <>
+                            <button
+                              onClick={handleEndSession}
+                              disabled={endSessionMutation.isPending}
+                              className="btn btn-warning btn-sm gap-2"
+                            >
+                              {endSessionMutation.isPending ? (
+                                <Loader2Icon className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <LogOutIcon className="w-4 h-4" />
+                              )}
+                              End Session
+                            </button>
+                            <button
+                              onClick={handleDeleteSession}
+                              disabled={deleteSessionMutation.isPending}
+                              className="btn btn-error btn-sm gap-2"
+                            >
+                              {deleteSessionMutation.isPending ? (
+                                <Loader2Icon className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2Icon className="w-4 h-4" />
+                              )}
+                              Delete
+                            </button>
+                          </>
                         )}
                         {session?.status === "completed" && (
                           <span className="badge badge-ghost badge-lg">Completed</span>

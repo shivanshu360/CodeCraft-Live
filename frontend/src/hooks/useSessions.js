@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { sessionApi } from "../api/sessions";
 
@@ -54,11 +54,34 @@ export const useJoinSession = () => {
 };
 
 export const useEndSession = () => {
+  const queryClient = useQueryClient();
+
   const result = useMutation({
     mutationKey: ["endSession"],
     mutationFn: sessionApi.endSession,
-    onSuccess: () => toast.success("Session ended successfully!"),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activeSessions"] });
+      queryClient.invalidateQueries({ queryKey: ["myRecentSessions"] });
+      toast.success("Session ended successfully!");
+    },
     onError: (error) => toast.error(error.response?.data?.message || "Failed to end session"),
+  });
+
+  return result;
+};
+
+export const useDeleteSession = () => {
+  const queryClient = useQueryClient();
+
+  const result = useMutation({
+    mutationKey: ["deleteSession"],
+    mutationFn: sessionApi.deleteSession,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["activeSessions"] });
+      queryClient.invalidateQueries({ queryKey: ["myRecentSessions"] });
+      toast.success("Session deleted successfully!");
+    },
+    onError: (error) => toast.error(error.response?.data?.message || "Failed to delete session"),
   });
 
   return result;

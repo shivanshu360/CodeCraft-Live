@@ -14,11 +14,27 @@ import sessionRoutes from "./routes/sessionRoute.js"
 const app = express();
 
 const __dirname = path.resolve();
+const allowedOrigins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+];
 
 //middleware 
 app.use(express.json())
 
-app.use(cors({origin:ENV.CLIENT_URL,credentials:true}))
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin) || /^http:\/\/localhost:\d+$/.test(origin) || /^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) {
+            callback(null, true);
+            return;
+        }
+
+        callback(new Error(`Origin not allowed by CORS: ${origin}`));
+    },
+    credentials: true,
+}))
 
 app.use(clerkMiddleware());//this add auth field to requset a=object:req.auth()
 
